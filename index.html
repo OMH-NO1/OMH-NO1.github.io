@@ -30,6 +30,48 @@
             user-select: none;
             -webkit-overflow-scrolling: touch;
         }
+
+        /* 横屏和全屏提示 */
+        .orientation-prompt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            z-index: 2000;
+            cursor: pointer;
+            animation: pulse 2s ease-in-out infinite;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* 横屏时隐藏提示 */
+        @media (orientation: landscape) {
+            .orientation-prompt {
+                display: none;
+            }
+        }
+
+        /* 确保横屏时内容可见 */
+        @media (orientation: portrait) {
+            .container {
+                display: none;
+            }
+        }
+
+        /* 确保横屏时内容显示 */
+        @media (orientation: landscape) {
+            .container {
+                display: block;
+            }
+        }
         
         body {
             background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 25%, #45b7d1 50%, #96ceb4 75%, #ffeaa7 100%);
@@ -489,13 +531,15 @@
             
             .controls {
                 bottom: 10px;
-                gap: 6px;
+                gap: 8px;
             }
             
             .control-btn {
-                padding: 6px 12px;
-                font-size: clamp(0.6rem, 1.5vw, 0.8rem);
-                min-width: 80px;
+                padding: 8px 16px;
+                font-size: clamp(0.8rem, 2vw, 1rem);
+                min-width: 100px;
+                background: rgba(255, 255, 255, 0.3);
+                border: 2px solid rgba(255, 255, 255, 0.6);
             }
             
             .danmaku-container {
@@ -505,6 +549,12 @@
     </style>
 </head>
 <body>
+    <!-- 全屏和横屏提示 -->
+    <div class="orientation-prompt" id="orientationPrompt">
+        <div style="font-size: 32px; margin-bottom: 20px;">🎉 2026跨年倒计时</div>
+        <div style="font-size: 24px; text-align: center; margin-bottom: 30px;">📱 请将手机<span style="color: #ff6b6b; font-weight: bold;">横屏</span>并<span style="color: #4ecdc4; font-weight: bold;">点击屏幕</span>进入全屏！</div>
+        <div style="font-size: 18px; opacity: 0.8;">获得最佳观看体验</div>
+    </div>
     <div class="container">
         <canvas id="fireworksCanvas"></canvas>
         
@@ -1153,12 +1203,32 @@
                      document.msFullscreenElement);
         }
         
-        // 隐藏全屏提示
+        // 隐藏全屏和横屏提示
         function hideFullscreenPrompt() {
-            const prompt = document.getElementById('fullscreenPrompt');
-            if (prompt) {
-                prompt.classList.add('hidden');
+            // 隐藏全屏提示（如果存在）
+            const fullscreenPrompt = document.getElementById('fullscreenPrompt');
+            if (fullscreenPrompt) {
+                fullscreenPrompt.classList.add('hidden');
             }
+            
+            // 隐藏横屏提示（如果存在）
+            const orientationPrompt = document.getElementById('orientationPrompt');
+            if (orientationPrompt) {
+                orientationPrompt.style.display = 'none';
+            }
+        }
+        
+        // 处理横屏提示点击事件
+        const orientationPrompt = document.getElementById('orientationPrompt');
+        if (orientationPrompt) {
+            orientationPrompt.addEventListener('click', () => {
+                // 尝试进入全屏
+                if (isFullscreenSupported()) {
+                    enterFullscreen();
+                }
+                // 隐藏提示
+                hideFullscreenPrompt();
+            });
         }
         
         // 增强的自动全屏尝试函数
