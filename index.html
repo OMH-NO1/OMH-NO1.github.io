@@ -680,20 +680,25 @@
         // 全屏处理函数
         function enterFullscreen() {
             const docEl = document.documentElement;
+            const prompt = document.getElementById('fullscreenPrompt');
             
-            // 尝试各种浏览器的全屏API
             if (docEl.requestFullscreen) {
-                docEl.requestFullscreen();
-            } else if (docEl.mozRequestFullScreen) { // Firefox
+                docEl.requestFullscreen().catch(err => {
+                    console.log(`全屏请求失败: ${err.message}`);
+                    alert('请允许全屏权限以获得最佳体验');
+                });
+            } else if (docEl.mozRequestFullScreen) {
                 docEl.mozRequestFullScreen();
-            } else if (docEl.webkitRequestFullscreen) { // Chrome, Safari
-                docEl.webkitRequestFullscreen();
-            } else if (docEl.msRequestFullscreen) { // IE/Edge
+            } else if (docEl.webkitRequestFullscreen) {
+                docEl.webkitRequestFullscreen().catch(err => {
+                    console.log(`全屏请求失败: ${err.message}`);
+                    alert('请允许全屏权限以获得最佳体验');
+                });
+            } else if (docEl.msRequestFullscreen) {
                 docEl.msRequestFullscreen();
             }
             
-            // 隐藏全屏提示
-            document.getElementById('fullscreenPrompt').style.display = 'none';
+            prompt.style.display = 'none';
         }
 
         // 延迟执行，确保页面加载完成
@@ -704,32 +709,15 @@
             // 检测是否是iOS设备
             const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             
-            // 如果是iOS并且不是全屏模式，显示提示
-            if (isiOS && !document.fullscreenElement) {
-                const prompt = document.getElementById('fullscreenPrompt');
-                prompt.style.display = 'flex';
-                
-                // 3秒后自动隐藏提示
-                setTimeout(() => {
-                    prompt.style.opacity = '0';
-                    setTimeout(() => {
-                        prompt.style.display = 'none';
-                    }, 500);
-                }, 3000);
-                
-                // 点击提示进入全屏
-                prompt.addEventListener('click', enterFullscreen);
-            } else {
-                // 非iOS设备直接尝试进入全屏
-                enterFullscreen();
-            }
+            // 所有设备都显示提示，必须通过用户点击触发全屏（符合浏览器安全策略）
+            const prompt = document.getElementById('fullscreenPrompt');
+            prompt.style.display = 'flex';
+            prompt.addEventListener('click', enterFullscreen);
             
             // 监听 orientationchange 事件，确保横屏时保持全屏
             window.addEventListener('orientationchange', function() {
                 window.scrollTo(0, 1);
-                if (!document.fullscreenElement) {
-                    enterFullscreen();
-                }
+                
             });
             
         }, 500);
