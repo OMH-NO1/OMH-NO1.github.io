@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>2026跨年倒计时 - 烟花盛典</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全屏相关样式 */
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Arial', sans-serif;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 25%, #45b7d1 50%, #96ceb4 75%, #ffeaa7 100%);
+            background-size: 400% 400%;
+            animation: backgroundShift 15s ease infinite;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        /* 全屏容器 */
+        .container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+        }
+        
+        /* 隐藏浏览器滚动条 */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* 全屏模式样式 */
+        :fullscreen .container,
+        :-webkit-full-screen .container,
+        :-moz-full-screen .container,
+        :-ms-fullscreen .container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* iOS安全区域适配 */
+        @supports (padding: max(0px)) {
+            .container {
+                padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            }
+        }
+        
+        @keyframes backgroundShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #fireworksCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .countdown-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            width: 90%;
+        }
+
+        .date-display {
+            font-size: clamp(1rem, 4vw, 2rem);
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 
+                0 0 5px #ffffff,
+                0 0 10px #ff6b6b,
+                0 0 20px #4ecdc4;
+            margin-bottom: 20px;
+            background: transparent;
+            padding: 10px 20px;
+            border: none;
+        }
+
+        /* 苹果风格翻页倒计时样式 */
+        .flip-clock-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .flip-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .flip-number {
+            position: relative;
+            width: clamp(100px, 18vw, 240px);
+            height: clamp(140px, 25vw, 350px);
+            font-size: clamp(4rem, 15vw, 12rem);
+            font-weight: bold;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 2px 10px rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+            overflow: hidden;
+            padding: 0 10px;
+        }
+
+        /* 翻页效果 */
+        .flip-number::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            z-index: 1;
+        }
+
+        .flip-number::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent, rgba(0, 0, 0, 0.3));
+            pointer-events: none;
+        }
+
+        /* 数字翻转动画 */
+        @keyframes flip {
+            0% {
+                transform: rotateX(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: rotateX(90deg);
+                opacity: 0.5;
+            }
+            51% {
+                transform: rotateX(90deg);
+                opacity: 0.5;
+            }
+            100% {
+                transform: rotateX(0deg);
+                opacity: 1;
+            }
+        }
+
+        .flip-number.flipping {
+            animation: flip 0.6s ease-in-out;
+        }
+
+        .unit-label {
+            margin-top: 10px;
+            font-size: clamp(0.8rem, 2vw, 1.5rem);
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* 隐藏旧的倒计时样式 */
+        .countdown-display {
+            display: none;
+        }
+
+        .new-year-text {
+            font-size: clamp(2rem, 8vw, 6rem);
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-flow 3s ease infinite, glow-pulse 1.5s ease-in-out infinite alternate;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            border: 3px solid transparent;
+            border-image: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7) 1;
+            border-image-slice: 1;
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 
+                0 0 20px rgba(255, 107, 107, 0.5),
+                0 0 40px rgba(78, 205, 196, 0.5),
+                0 0 60px rgba(69, 183, 209, 0.5);
+            animation: border-glow 2s ease-in-out infinite alternate, gradient-flow 3s ease infinite;
+            display: none;
+        }
+        
+        /* 弹幕样式 */
+        .danmaku-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            overflow: hidden;
+            z-index: 9;
+            pointer-events: none;
+        }
+        
+        .danmaku {
+            position: absolute;
+            top: 0;
+            right: -300px;
+            color: white;
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+            animation: danmaku-move linear;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+        
+        @keyframes danmaku-move {
+            0% {
+                right: -300px;
+                opacity: 1;
+            }
+            100% {
+                right: 100%;
+                opacity: 1;
+            }
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: bold;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes glow-pulse {
+            from {
+                text-shadow: 
+                    0 0 10px #ffffff,
+                    0 0 20px #ff6b6b,
+                    0 0 40px #4ecdc4,
+                    0 0 80px #45b7d1;
+            }
+            to {
+                text-shadow: 
+                    0 0 20px #ffffff,
+                    0 0 40px #ff6b6b,
+                    0 0 80px #4ecdc4,
+                    0 0 160px #45b7d1;
+            }
+        }
+
+        @keyframes gradient-flow {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes border-glow {
+            from {
+                box-shadow: 
+                    0 0 20px rgba(255, 107, 107, 0.5),
+                    0 0 40px rgba(78, 205, 196, 0.5),
+                    0 0 60px rgba(69, 183, 209, 0.5);
+            }
+            to {
+                box-shadow: 
+                    0 0 30px rgba(255, 107, 107, 0.8),
+                    0 0 60px rgba(78, 205, 196, 0.8),
+                    0 0 90px rgba(69, 183, 209, 0.8);
+            }
+        }
+
+        @keyframes firework-trail {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+
+        /* 响应式设计 */
+        /* 通用手机适配 */
+        @media (max-width: 768px) {
+            .countdown-display {
+                font-size: clamp(4rem, 18vw, 12rem);
+            }
+            
+            .new-year-text {
+                font-size: clamp(1.5rem, 6vw, 4rem);
+                padding: 15px 30px;
+            }
+            
+            .control-btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+                min-width: 100px;
+            }
+        }
+
+        /* 横屏适配 - 针对苹果13横屏优化 */
+        @media (orientation: landscape) {
+            /* 苹果13横屏优化 - 倒计时占据屏幕主体 */
+            .countdown-container {
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            
+            .date-display {
+                font-size: clamp(0.8rem, 3vw, 1.5rem);
+                margin-bottom: 15px;
+            }
+            
+            /* 调整翻页时钟布局 - 苹果13横屏优化 */
+            .flip-clock-container {
+                gap: 20px; /* 增加间距，让数字不挤 */
+                margin: 30px 0;
+            }
+            
+            /* 调整翻页数字大小 - 覆盖屏幕中间主体部分 */
+            .flip-number {
+                width: clamp(80px, 15vw, 200px);
+                height: clamp(120px, 22vw, 300px);
+                font-size: clamp(4rem, 15vw, 12rem);
+                padding: 0 10px;
+            }
+            
+            /* 调整单位标签大小 */
+            .unit-label {
+                margin-top: 8px;
+                font-size: clamp(0.7rem, 2vw, 1.2rem);
+            }
+            
+            /* 调整新年文字大小 */
+            .new-year-text {
+                font-size: clamp(2rem, 8vw, 5rem);
+                padding: 20px 40px;
+            }
+            
+            /* 优化控制按钮布局 */
+            .controls {
+                bottom: 20px;
+                gap: 10px;
+                max-width: 90%;
+            }
+            
+            /* 调整控制按钮大小 */
+            .control-btn {
+                padding: 12px 20px;
+                font-size: clamp(0.9rem, 2vw, 1.1rem);
+                min-width: 120px;
+            }
+            
+            /* 优化弹幕容器高度 - 覆盖屏幕一半 */
+            .danmaku-container {
+                height: 50%;
+            }
+            
+            /* 调整弹幕大小 */
+            .danmaku {
+                font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+            }
+        }
+
+        /* 小屏横屏优化 - 针对更小的横屏设备 */
+        @media (orientation: landscape) and (max-height: 450px) {
+            .countdown-container {
+                top: 35%;
+            }
+            
+            .date-display {
+                font-size: clamp(0.7rem, 2.5vw, 1.2rem);
+                margin-bottom: 8px;
+            }
+            
+            .flip-clock-container {
+                gap: 5px;
+                margin: 15px 0;
+            }
+            
+            .flip-number {
+                width: clamp(50px, 10vw, 150px);
+                height: clamp(80px, 15vw, 200px);
+                font-size: clamp(2.5rem, 10vw, 8rem);
+                padding: 0 6px;
+            }
+            
+            .unit-label {
+                margin-top: 3px;
+                font-size: clamp(0.5rem, 1.2vw, 0.8rem);
+            }
+            
+            .new-year-text {
+                font-size: clamp(1.2rem, 5vw, 3.5rem);
+                padding: 12px 25px;
+            }
+            
+            .controls {
+                bottom: 10px;
+                gap: 6px;
+            }
+            
+            .control-btn {
+                padding: 6px 12px;
+                font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+                min-width: 80px;
+            }
+            
+            .danmaku-container {
+                height: 12%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="fireworksCanvas"></canvas>
+        
+        <div class="danmaku-container" id="danmakuContainer"></div>
+        
+        <div class="countdown-container">
+            <div class="date-display" id="dateDisplay"></div>
+            <div class="flip-clock-container" id="flipClock">
+                <!-- 时 -->
+                <div class="flip-unit">
+                    <div class="flip-number" id="hours">00</div>
+                    <div class="unit-label">时</div>
+                </div>
+                <!-- 分 -->
+                <div class="flip-unit">
+                    <div class="flip-number" id="minutes">00</div>
+                    <div class="unit-label">分</div>
+                </div>
+                <!-- 秒 -->
+                <div class="flip-unit">
+                    <div class="flip-number" id="seconds">00</div>
+                    <div class="unit-label">秒</div>
+                </div>
+            </div>
+            <div class="countdown-display" id="countdown"></div>
+            <div class="new-year-text" id="newYearText">2026 新年快乐！</div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previewNewYear()">🎉 预览跨年</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 优化高DPI屏幕显示
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * devicePixelRatio;
+        canvas.height = window.innerHeight * devicePixelRatio;
+        
+        // 设置canvas的CSS显示大小
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        
+        // 缩放上下文以匹配设备像素比
+        ctx.scale(devicePixelRatio, devicePixelRatio);
+
+        let fireworks = [];
+        let particles = [];
+        let autoMode = true;
+        let autoFireInterval;
+        let isNewYear = false;
+        let isPreviewMode = false;
+        let danmakuList = [];
+        
+        // 新年祝福语文本数组
+        const newYearMessages = [
+            "新年快乐！",
+            "2026，万事如意！",
+            "恭喜发财！",
+            "身体健康！",
+            "心想事成！",
+            "阖家幸福！",
+            "事业有成！",
+            "财源广进！",
+            "笑口常开！",
+            "平安喜乐！",
+            "步步高升！",
+            "一帆风顺！",
+            "吉祥如意！",
+            "五福临门！",
+            "年年有余！",
+            "喜气洋洋！",
+            "福星高照！",
+            "鸿运当头！",
+            "前程似锦！",
+            "美梦成真！"
+        ];
+
+        // 烟花颜色列表
+        const FIREWORK_COLORS = [
+            '#ff6b6b', // 红色
+            '#4ecdc4', // 青色
+            '#45b7d1', // 蓝色
+            '#96ceb4', // 绿色
+            '#ffeaa7', // 黄色
+            '#fd79a8', // 粉色
+            '#fdcb6e', // 橙色
+            '#a29bfe', // 紫色
+            '#fd79a8', // 玫红
+            '#dfe6e9'  // 浅灰
+        ];
+        
+        // 炮筒类
+        class Rocket {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height;
+                this.targetY = Math.random() * (canvas.height * 0.3) + canvas.height * 0.1;
+                this.color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+                this.speed = Math.random() * 3 + 3;
+                this.acceleration = 1.02;
+                this.angle = Math.atan2(this.targetY - this.y, 0);
+                this.trail = [];
+                this.maxTrailLength = 20;
+                this.exploded = false;
+                this.brightness = Math.random() * 50 + 50;
+                
+                // 计算飞行时间
+                this.flightTime = Math.sqrt(Math.abs(this.targetY - this.y)) / this.speed * 100;
+            }
+
+            update() {
+                if (this.exploded) return;
+
+                // 保存轨迹点
+                this.trail.push({ x: this.x, y: this.y, alpha: 1 });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+
+                // 更新速度和位置
+                this.speed *= this.acceleration;
+                this.y -= Math.abs(this.speed * Math.sin(this.angle));
+
+                // 检查是否到达目标高度
+                if (this.y <= this.targetY) {
+                    this.explode();
+                }
+            }
+
+            explode() {
+                this.exploded = true;
+                const particleCount = Math.floor(Math.random() * 50) + 80;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (i / particleCount) * Math.PI * 2;
+                    const speed = Math.random() * 5 + 3;
+                    particles.push(new Particle(this.x, this.y, this.color, angle, speed));
+                }
+                
+                // 爆炸声音已经在声音序列中播放，这里不再重复播放
+            }
+
+            draw() {
+                if (this.exploded) return;
+
+                // 绘制轨迹
+                for (let i = 0; i < this.trail.length; i++) {
+                    const trailPoint = this.trail[i];
+                    const alpha = trailPoint.alpha * (i / this.trail.length);
+                    
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = this.color;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = this.color;
+                    
+                    ctx.beginPath();
+                    ctx.arc(trailPoint.x, trailPoint.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                    
+                    // 更新轨迹点透明度
+                    trailPoint.alpha -= 0.05;
+                }
+
+                // 绘制炮筒头部
+                ctx.save();
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = this.color;
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // 粒子类
+        class Particle {
+            constructor(x, y, color, angle, speed) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.velocity = {
+                    x: Math.cos(angle) * speed,
+                    y: Math.sin(angle) * speed
+                };
+                this.gravity = 0.15;
+                this.friction = 0.98;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.005;
+                this.size = Math.random() * 3 + 2;
+                this.brightness = Math.random() * 30 + 70;
+            }
+
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity;
+
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= this.decay;
+            }
+
+            draw() {
+                if (this.alpha <= 0) return;
+
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // 随机创建烟花 - 只有在新年或预览模式下才允许
+        function createRandomFirework() {
+            // 只有在倒计时归零或预览模式下才发射烟花
+            if (isNewYear || isPreviewMode) {
+                // 移动设备性能优化：限制同时存在的烟花数量
+                if (fireworks.length < 10) {
+                    fireworks.push(new Rocket());
+                }
+            }
+        }
+
+        // 自动模式
+        function toggleAutoMode() {
+            autoMode = !autoMode;
+            if (autoMode) {
+                startAutoFire();
+            } else {
+                stopAutoFire();
+            }
+        }
+
+        function startAutoFire() {
+            stopAutoFire();
+            autoFireInterval = setInterval(() => {
+                createRandomFirework();
+            }, Math.random() * 800 + 500);
+        }
+
+        function stopAutoFire() {
+            if (autoFireInterval) {
+                clearInterval(autoFireInterval);
+            }
+        }
+
+        // 清空烟花
+        function clearFireworks() {
+            fireworks = [];
+            particles = [];
+        }
+
+        // 保存当前倒计时数值，用于检测变化
+        let currentTime = {
+            hours: 0,
+            minutes: 0,
+            seconds: 0
+        };
+
+        // 更新倒计时和日期
+        function updateCountdown() {
+            const now = new Date();
+            const newYear2026 = new Date('2026-01-01T00:00:00');
+            const diff = newYear2026 - now;
+            
+            const countdownEl = document.getElementById('countdown');
+            const newYearTextEl = document.getElementById('newYearText');
+            const dateEl = document.getElementById('dateDisplay');
+            
+            // 更新日期显示
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            const minute = String(now.getMinutes()).padStart(2, '0');
+            const second = String(now.getSeconds()).padStart(2, '0');
+            
+            dateEl.textContent = `${year}年${month}月${day}日 ${hour}:${minute}:${second}`;
+            
+            if (diff <= 0) {
+                if (!isNewYear) {
+                    isNewYear = true;
+                    // 立即更新UI，无延迟
+                    countdownEl.style.display = 'none';
+                    newYearTextEl.style.display = 'inline-block';
+                    
+                    // 隐藏翻页时钟
+                    document.getElementById('flipClock').style.display = 'none';
+                    
+                    // 立即触发新年庆祝效果
+                    newYearCelebration();
+                }
+                return;
+            }
+            
+            // 计算时、分、秒（天转换为时）
+            const totalHours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            // 更新翻页时钟 - 立即更新，无延迟
+            updateFlipClock(totalHours, minutes, seconds);
+            
+            // 更新旧的倒计时显示（隐藏状态）
+            const totalSeconds = totalHours * 3600 + minutes * 60 + seconds;
+            countdownEl.textContent = totalSeconds;
+        }
+        
+        // 更新翻页时钟
+        function updateFlipClock(hours, minutes, seconds) {
+            const timeValues = {
+                hours: String(hours).padStart(2, '0'),
+                minutes: String(minutes).padStart(2, '0'),
+                seconds: String(seconds).padStart(2, '0')
+            };
+            
+            // 检查每个数值是否变化，如果变化则添加翻转动画
+            for (const [unit, value] of Object.entries(timeValues)) {
+                const element = document.getElementById(unit);
+                if (element.textContent !== value) {
+                    // 添加翻转动画
+                    element.classList.add('flipping');
+                    
+                    // 更新数值
+                    element.textContent = value;
+                    
+                    // 移除动画类，以便下次动画可以再次触发
+                    setTimeout(() => {
+                        element.classList.remove('flipping');
+                    }, 600);
+                    
+                    // 更新当前时间记录
+                    currentTime[unit] = value;
+                }
+            }
+        }
+
+        // 创建弹幕 - 优化版
+        function createDanmaku() {
+            const container = document.getElementById('danmakuContainer');
+            const danmaku = document.createElement('div');
+            danmaku.className = 'danmaku';
+            
+            // 随机选择祝福语
+            const message = newYearMessages[Math.floor(Math.random() * newYearMessages.length)];
+            danmaku.textContent = message;
+            
+            // 随机位置 - 覆盖屏幕一半区域
+            const top = Math.random() * container.offsetHeight;
+            danmaku.style.top = `${top}px`;
+            
+            // 随机颜色
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fd79a8', '#fdcb6e', '#a29bfe'];
+            danmaku.style.color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // 加快弹幕速度（2-4秒）
+            const duration = Math.random() * 2 + 2;
+            danmaku.style.animationDuration = `${duration}s`;
+            
+            // 添加到容器
+            container.appendChild(danmaku);
+            
+            // 动画结束后移除
+            setTimeout(() => {
+                danmaku.remove();
+            }, duration * 1000);
+        }
+        
+        // 持续生成弹幕 - 持续2分钟
+        function startDanmaku() {
+            // 初始大量弹幕
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    createDanmaku();
+                }, i * 50);
+            }
+            
+            // 持续生成弹幕，增加频率（每150毫秒一个）
+            const danmakuInterval = setInterval(() => {
+                createDanmaku();
+            }, 150);
+            
+            // 2分钟后调整弹幕频率
+            setTimeout(() => {
+                clearInterval(danmakuInterval);
+                // 降低弹幕频率，持续到结束
+                setInterval(() => {
+                    createDanmaku();
+                }, 300);
+            }, 120000); // 2分钟 = 120,000毫秒
+        }
+        
+        // 新年庆祝 - 持续2分钟增强版
+        function newYearCelebration() {
+            // 触发弹幕系统 - 持续2分钟
+            startDanmaku();
+            
+            // 瞬间爆发大量烟花，创造强烈视觉冲击
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    createRandomFirework();
+                }, i * 50); // 每50毫秒发射一个，共50个
+            }
+            
+            // 高频率持续烟花表演（每100毫秒一个），持续2分钟
+            const rapidFireInterval = setInterval(() => {
+                createRandomFirework();
+            }, 100);
+            
+            // 2分钟后降低频率
+            setTimeout(() => {
+                clearInterval(rapidFireInterval);
+                // 降低频率，持续到结束
+                setInterval(() => {
+                    createRandomFirework();
+                }, 300);
+            }, 120000); // 2分钟 = 120,000毫秒
+            
+            // 启动自动模式
+            startAutoFire();
+        }
+        
+        // 特殊烟花触发 - 只有在新年或预览模式下才允许
+        function createSpecialFirework() {
+            if (isNewYear || isPreviewMode) {
+                // 创建特殊形状的烟花
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height * 0.3;
+                const colors = FIREWORK_COLORS;
+                
+                // 创建特殊形状的烟花
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i / 5) * Math.PI * 2;
+                    const targetX = centerX + Math.cos(angle) * 200;
+                    const targetY = centerY + Math.sin(angle) * 200;
+                    const color = colors[i % colors.length];
+                    
+                    // 只有在允许发射烟花时才创建
+                    if (isNewYear || isPreviewMode) {
+                        fireworks.push(new Rocket());
+                    }
+                }
+            }
+        }
+
+        // 预览跨年 - 优化响应速度
+        function previewNewYear() {
+            // 设置预览模式
+            isPreviewMode = true;
+            
+            const countdownEl = document.getElementById('countdown');
+            const newYearTextEl = document.getElementById('newYearText');
+            const dateEl = document.getElementById('dateDisplay');
+            const flipClockEl = document.getElementById('flipClock');
+            const danmakuContainer = document.getElementById('danmakuContainer');
+            
+            // 保存当前状态
+            const originalDateDisplay = dateEl.textContent;
+            const originalFlipClockDisplay = flipClockEl.style.display;
+            
+            // 更新日期显示为倒计时状态
+            dateEl.textContent = '新年倒计时';
+            
+            // 显示翻页时钟
+            flipClockEl.style.display = 'flex';
+            
+            // 显示倒计时动画
+            let countdown = 3;
+            
+            // 更新翻页时钟显示倒计时
+            updateFlipClock(0, 0, 0, 3);
+            
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    // 更新翻页时钟 - 立即更新，无延迟
+                    updateFlipClock(0, 0, 0, countdown);
+                } else {
+                    clearInterval(countdownInterval);
+                    
+                    // 立即显示新年祝福
+                    flipClockEl.style.display = 'none';
+                    newYearTextEl.style.display = 'inline-block';
+                    
+                    // 立即触发弹幕系统（无延迟）
+                    for (let i = 0; i < 8; i++) {
+                        createDanmaku();
+                    }
+                    
+                    // 预览模式下持续生成弹幕
+                    const previewDanmakuInterval = setInterval(() => {
+                        createDanmaku();
+                    }, 200);
+                    
+                    // 立即触发烟花表演
+                    for (let i = 0; i < 20; i++) {
+                        createRandomFirework();
+                    }
+                    
+                    // 预览模式下持续生成烟花
+                    const previewFireworkInterval = setInterval(() => {
+                        createRandomFirework();
+                    }, 100);
+                    
+                    // 预览模式持续10秒，让用户充分体验效果
+                    setTimeout(() => {
+                        newYearTextEl.style.display = 'none';
+                        flipClockEl.style.display = originalFlipClockDisplay;
+                        updateCountdown();
+                        // 恢复正常日期显示
+                        dateEl.textContent = originalDateDisplay;
+                        // 清除所有弹幕
+                        danmakuContainer.innerHTML = '';
+                        // 清除预览模式的定时器
+                        clearInterval(previewDanmakuInterval);
+                        clearInterval(previewFireworkInterval);
+                        // 关闭预览模式
+                        isPreviewMode = false;
+                    }, 10000); // 预览时长延长到10秒
+                }
+            }, 1000);
+        }
+
+        // 动画循环
+        function animate() {
+            // 渐变背景清除
+            ctx.fillStyle = 'rgba(10, 10, 15, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 更新和绘制烟花
+            fireworks = fireworks.filter(rocket => !rocket.exploded);
+            
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                fireworks[i].update();
+                fireworks[i].draw();
+            }
+
+            // 更新和绘制粒子
+            particles = particles.filter(particle => particle.alpha > 0);
+            
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+            }
+
+            // 绘制制作者信息
+            ctx.save();
+            ctx.font = '14px Arial';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText('制作者：欧', canvas.width - 20, canvas.height - 20);
+            ctx.restore();
+
+            requestAnimationFrame(animate);
+        }
+
+        // 窗口大小调整 - 支持高DPI屏幕
+        window.addEventListener('resize', () => {
+            const devicePixelRatio = window.devicePixelRatio || 1;
+            canvas.width = window.innerWidth * devicePixelRatio;
+            canvas.height = window.innerHeight * devicePixelRatio;
+            
+            // 设置canvas的CSS显示大小
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+            
+            // 重置上下文缩放
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+        });
+
+        // 全屏功能实现 - 增强版
+        function enterFullscreen() {
+            const element = document.documentElement;
+            
+            // 各种浏览器的全屏API
+            try {
+                if (element.requestFullscreen) {
+                    element.requestFullscreen();
+                } else if (element.webkitRequestFullscreen) {
+                    // Safari (iOS需要特殊处理)
+                    element.webkitRequestFullscreen();
+                } else if (element.mozRequestFullScreen) {
+                    // Firefox
+                    element.mozRequestFullScreen();
+                } else if (element.msRequestFullscreen) {
+                    // IE/Edge
+                    element.msRequestFullscreen();
+                } else if (element.webkitEnterFullscreen) {
+                    // 旧版iOS Safari
+                    element.webkitEnterFullscreen();
+                } else if (navigator.standalone) {
+                    // iOS 独立模式下的处理
+                    console.log('iOS standalone mode detected');
+                    // 在独立模式下，我们已经处于全屏状态
+                    fullscreenEntered = true;
+                    hideFullscreenPrompt();
+                }
+            } catch (error) {
+                console.log('全屏请求失败:', error);
+            }
+        }
+        
+        // 检测是否支持全屏
+        function isFullscreenSupported() {
+            return !!(document.fullscreenEnabled || 
+                     document.webkitFullscreenEnabled || 
+                     document.mozFullScreenEnabled || 
+                     document.msFullscreenEnabled ||
+                     // 旧版浏览器检测
+                     typeof document.documentElement.webkitRequestFullscreen === 'function');
+        }
+        
+        // 检测是否已经进入全屏
+        function isFullscreen() {
+            return !!(document.fullscreenElement || 
+                     document.webkitFullscreenElement || 
+                     document.mozFullScreenElement || 
+                     document.msFullscreenElement);
+        }
+        
+        // 隐藏全屏提示
+        function hideFullscreenPrompt() {
+            const prompt = document.getElementById('fullscreenPrompt');
+            if (prompt) {
+                prompt.classList.add('hidden');
+            }
+        }
+        
+        // 增强的自动全屏尝试函数
+        function tryAutoFullscreen() {
+            if (isFullscreenSupported() && !fullscreenEntered && !isFullscreen()) {
+                enterFullscreen();
+                // 检查是否成功进入全屏
+                setTimeout(() => {
+                    if (isFullscreen()) {
+                        fullscreenEntered = true;
+                        hideFullscreenPrompt();
+                    }
+                }, 200);
+            }
+        }
+        
+        // 全屏进入标志，确保只触发一次
+        let fullscreenEntered = false;
+        
+        // 添加点击事件，点击任意位置进入全屏（仅第一次点击）
+        document.addEventListener('click', () => {
+            if (!fullscreenEntered && isFullscreenSupported() && !isFullscreen()) {
+                enterFullscreen();
+                fullscreenEntered = true;
+                hideFullscreenPrompt();
+            }
+        });
+        
+        // 添加触摸事件支持
+        document.addEventListener('touchstart', () => {
+            if (!fullscreenEntered && isFullscreenSupported() && !isFullscreen()) {
+                enterFullscreen();
+                fullscreenEntered = true;
+                hideFullscreenPrompt();
+            }
+        }, { passive: true });
+        
+        // 添加键盘事件支持
+        document.addEventListener('keydown', () => {
+            if (!fullscreenEntered && isFullscreenSupported() && !isFullscreen()) {
+                enterFullscreen();
+                fullscreenEntered = true;
+                hideFullscreenPrompt();
+            }
+        });
+        
+        // 监听全屏状态变化
+        document.addEventListener('fullscreenchange', () => {
+            if (isFullscreen()) {
+                hideFullscreenPrompt();
+                fullscreenEntered = true;
+            }
+        });
+        
+        document.addEventListener('webkitfullscreenchange', () => {
+            if (isFullscreen()) {
+                hideFullscreenPrompt();
+                fullscreenEntered = true;
+            }
+        });
+        
+        document.addEventListener('mozfullscreenchange', () => {
+            if (isFullscreen()) {
+                hideFullscreenPrompt();
+                fullscreenEntered = true;
+            }
+        });
+        
+        document.addEventListener('MSFullscreenChange', () => {
+            if (isFullscreen()) {
+                hideFullscreenPrompt();
+                fullscreenEntered = true;
+            }
+        });
+        
+        // 监听orientationchange事件，在设备旋转时尝试全屏
+        window.addEventListener('orientationchange', () => {
+            if (!fullscreenEntered && isFullscreenSupported() && !isFullscreen()) {
+                tryAutoFullscreen();
+            }
+        });
+        
+        // 监听resize事件，在窗口大小变化时尝试全屏
+        window.addEventListener('resize', () => {
+            if (!fullscreenEntered && isFullscreenSupported() && !isFullscreen()) {
+                tryAutoFullscreen();
+            }
+        });
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            // 初始时不自动发射烟花，等待倒计时归零
+            // startAutoFire();
+            animate();
+            
+            // 多种时机尝试自动全屏，提高成功率
+            
+            // 1. 页面加载完成后立即尝试
+            tryAutoFullscreen();
+            
+            // 2. 短延迟后再次尝试
+            setTimeout(() => {
+                tryAutoFullscreen();
+            }, 300);
+            
+            // 3. 中等延迟后尝试
+            setTimeout(() => {
+                tryAutoFullscreen();
+            }, 600);
+            
+            // 4. 较长延迟后尝试
+            setTimeout(() => {
+                tryAutoFullscreen();
+            }, 1000);
+            
+            // 5. 更长延迟后尝试
+            setTimeout(() => {
+                tryAutoFullscreen();
+            }, 2000);
+            
+            // 6. 最后一次尝试
+            setTimeout(() => {
+                tryAutoFullscreen();
+            }, 3000);
+        });
+        
+        // 确保在页面可见时尝试全屏
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                tryAutoFullscreen();
+            }
+        });
+        
+        // 在页面获得焦点时尝试全屏
+        window.addEventListener('focus', () => {
+            tryAutoFullscreen();
+        });
+        
+
+    </script>
+</body>
+</html>
