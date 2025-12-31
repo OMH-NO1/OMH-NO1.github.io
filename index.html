@@ -21,6 +21,7 @@
             padding: 0;
             overflow: hidden;
             height: 100vh;
+            height: -webkit-fill-available; /* iOS全屏高度修正 */
             width: 100vw;
             font-family: 'Arial', sans-serif;
             -webkit-touch-callout: none;
@@ -297,7 +298,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 20%;
+            height: 80%;
             overflow: hidden;
             z-index: 9;
             pointer-events: none;
@@ -330,16 +331,24 @@
 
         .controls {
             position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 20px;
+            right: 20px;
+            left: auto;
+            transform: none;
             z-index: 10;
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: flex-end;
             gap: 10px;
-            width: 90%;
-            max-width: 500px;
+            width: auto;
+            max-width: none;
+        }
+        
+        /* 竖屏时隐藏控制按钮 */
+        @media (orientation: portrait) {
+            .controls {
+                display: none;
+            }
         }
 
         .control-btn {
@@ -452,22 +461,22 @@
             
             /* 调整翻页时钟布局 - 苹果13横屏优化 */
             .flip-clock-container {
-                gap: 20px; /* 增加间距，让数字不挤 */
+                gap: 60px; /* 增加间距，让数字不挤 */
                 margin: 30px 0;
             }
             
             /* 调整翻页数字大小 - 覆盖屏幕中间主体部分 */
             .flip-number {
-                width: clamp(80px, 15vw, 200px);
-                height: clamp(120px, 22vw, 300px);
-                font-size: clamp(4rem, 15vw, 12rem);
-                padding: 0 10px;
+                width: clamp(120px, 22vw, 280px);
+                height: clamp(160px, 32vw, 400px);
+                font-size: clamp(6rem, 24vw, 18rem);
+                padding: 0 15px;
             }
             
             /* 调整单位标签大小 */
             .unit-label {
-                margin-top: 8px;
-                font-size: clamp(0.7rem, 2vw, 1.2rem);
+                margin-top: 12px;
+                font-size: clamp(0.9rem, 3vw, 1.5rem);
             }
             
             /* 调整新年文字大小 */
@@ -478,9 +487,16 @@
             
             /* 优化控制按钮布局 */
             .controls {
-                bottom: 20px;
+                top: 20px;
+                right: 20px;
+                left: auto;
+                bottom: auto;
+                transform: none;
                 gap: 10px;
-                max-width: 90%;
+                width: auto;
+                max-width: none;
+                display: flex;
+                justify-content: flex-end;
             }
             
             /* 调整控制按钮大小 */
@@ -492,7 +508,7 @@
             
             /* 优化弹幕容器高度 - 覆盖屏幕一半 */
             .danmaku-container {
-                height: 50%;
+                height: 100%;
             }
             
             /* 调整弹幕大小 */
@@ -549,7 +565,7 @@
             
             /* 弹幕容器适配 */
             .danmaku-container {
-                height: 40%;
+                height: 100%;
             }
             
             .danmaku {
@@ -560,7 +576,8 @@
         /* 小屏横屏优化 - 针对更小的横屏设备 */
         @media (orientation: landscape) and (max-height: 450px) {
             .countdown-container {
-                top: 35%;
+                top: 50%;
+                transform: translate(-50%, -50%);
             }
             
             .date-display {
@@ -569,7 +586,7 @@
             }
             
             .flip-clock-container {
-                gap: 5px;
+                gap: 40px;
                 margin: 15px 0;
             }
             
@@ -591,8 +608,16 @@
             }
             
             .controls {
-                bottom: 10px;
+                top: 10px;
+                right: 10px;
+                left: auto;
+                bottom: auto;
+                transform: none;
                 gap: 8px;
+                width: auto;
+                max-width: none;
+                display: flex;
+                justify-content: flex-end;
             }
             
             .control-btn {
@@ -604,7 +629,7 @@
             }
             
             .danmaku-container {
-                height: 12%;
+                height: 100%;
             }
         }
     </style>
@@ -645,17 +670,70 @@
         </div>
 
         <div class="controls">
-            <button class="control-btn" onclick="previewNewYear()">🎉 预览跨年</button>
+            <button class="control-btn" onclick="previewNewYear()">🎉 预览</button>
         </div>
     </div>
 
     <script>
         // 页面加载后自动滚动一点，触发地址栏隐藏 
-        window.addEventListener('load', function() {
-          setTimeout(() => {
-            window.scrollTo(0, 1); // 滚动1像素，触发Safari隐藏地址栏
-          }, 100);
-        });
+       window.addEventListener('load', function() {
+        // 全屏处理函数
+        function enterFullscreen() {
+            const docEl = document.documentElement;
+            
+            // 尝试各种浏览器的全屏API
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen();
+            } else if (docEl.mozRequestFullScreen) { // Firefox
+                docEl.mozRequestFullScreen();
+            } else if (docEl.webkitRequestFullscreen) { // Chrome, Safari
+                docEl.webkitRequestFullscreen();
+            } else if (docEl.msRequestFullscreen) { // IE/Edge
+                docEl.msRequestFullscreen();
+            }
+            
+            // 隐藏全屏提示
+            document.getElementById('fullscreenPrompt').style.display = 'none';
+        }
+
+        // 延迟执行，确保页面加载完成
+        setTimeout(() => {
+            // 滚动一点来隐藏地址栏
+            window.scrollTo(0, 1);
+            
+            // 检测是否是iOS设备
+            const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
+            // 如果是iOS并且不是全屏模式，显示提示
+            if (isiOS && !document.fullscreenElement) {
+                const prompt = document.getElementById('fullscreenPrompt');
+                prompt.style.display = 'flex';
+                
+                // 3秒后自动隐藏提示
+                setTimeout(() => {
+                    prompt.style.opacity = '0';
+                    setTimeout(() => {
+                        prompt.style.display = 'none';
+                    }, 500);
+                }, 3000);
+                
+                // 点击提示进入全屏
+                prompt.addEventListener('click', enterFullscreen);
+            } else {
+                // 非iOS设备直接尝试进入全屏
+                enterFullscreen();
+            }
+            
+            // 监听 orientationchange 事件，确保横屏时保持全屏
+            window.addEventListener('orientationchange', function() {
+                window.scrollTo(0, 1);
+                if (!document.fullscreenElement) {
+                    enterFullscreen();
+                }
+            });
+            
+        }, 500);
+    });
         
         // 禁止用户缩放（避免边框重新显示）
         document.addEventListener('touchmove', function(e) {
